@@ -1,28 +1,28 @@
-<template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <hello></hello>
-  </div>
+<template lang="jade">
+  div#app
+    draw
 </template>
 
 <script>
-import Hello from './components/Hello'
+import Draw from './views/play/draw'
 
 export default {
   name: 'app',
   components: {
-    Hello
+    Draw
   }
 }
 </script>
 
 <style>
+*{
+  padding: 0;
+  margin: 0;
+}
+body,html,#app{
+  height: 100%;
+}
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  background-color: #000;
 }
 </style>
