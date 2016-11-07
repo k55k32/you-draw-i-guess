@@ -1,28 +1,20 @@
 <template lang="jade">
   div#app
-    draw
+    router-view
 </template>
 
 <script>
-import Draw from './views/play/draw'
-
 export default {
-  name: 'app',
-  components: {
-    Draw
-  }
+  name: 'app'
 }
 </script>
 
 <style>
 *{
-  padding: 0;
-  margin: 0;
+  box-sizing: border-box;
 }
 body,html,#app{
+  background: #f8f8f8;
   height: 100%;
-}
-#app {
-  background-color: #000;
 }
 </style>

@@ -1,34 +1,57 @@
 <template lang="jade">
-  div.draw
+div.draw-wrapper
+  .draw-wrap
     canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
+    .operator-wrap
+  .operator-btns.weui-flex
+    div
+      .color(:style="{background: setting.color}")
+    div
+      span 4
+    div
+      .iconfont.icon-weibiaoti545(@click="doAction('cancel')")
+    div
+      .iconfont.icon-chexiao(@click="doAction('reset')")
+    div
+      .iconfont.icon-shanchu(@click="clear")
 </template>
 
 <script>
+import colorSelect from 'color-select'
 export default {
+  components: { colorSelect },
+  data () {
+    return {
+      lineWidth: 5,
+      offsetTop: 0,
+      offsetLeft: 0,
+      canvasHeight: 0,
+      canvasWidth: 0,
+      lineCap: 'round',
+      historyData: [],
+      historyIndex: -2,
+      setting: { color: '#000' }
+    }
+  },
   mounted () {
     this.$nextTick(() => {
       let dom = document.getElementById('draw-convas')
       let wrap = dom.parentElement
+      this.canvasHeight = wrap.clientHeight
+      this.canvasWidth = wrap.clientWidth
       dom.setAttribute('width', wrap.clientWidth)
-      window.test = wrap
       dom.setAttribute('height', wrap.clientHeight)
       let cxt = dom.getContext('2d')
       cxt.lineCap = this.lineCap
       cxt.lineJoin = this.lineCap
       this.cxt = cxt
+      this.offsetTop = dom.offsetTop
+      this.offsetLeft = dom.offsetLeft
+      this.saveData()
     })
   },
-  data () {
-    return {
-      lineWidth: 5,
-      lineCap: 'round'
-    }
-  },
   methods: {
-    draw (e, type = 'start') {
-      let touch = e.touches[0]
-      let x = touch.clientX
-      let y = touch.clientY
+    draw ({ x, y }, type = 'start') {
       let cxt = this.cxt
       switch (type) {
         case 'start':
@@ -41,27 +64,112 @@ export default {
           break
         case 'move':
           cxt.lineTo(x, y)
+          cxt.stroke()
           break
       }
-      cxt.stroke()
+    },
+    doAction (actionName, data) {
+      switch (actionName) {
+        case 'start':
+        case 'move':
+          this.draw(data, actionName)
+          break
+        case 'end':
+          this.cxt.closePath()
+          this.saveData()
+          break
+        case 'clear':
+          this.clearCanvas()
+          this.saveData()
+          break
+        case 'cancel':
+          this.cancelAction()
+          break
+        case 'reset':
+          this.resetAction()
+          break
+        default:
+          console.log('unknow actionName:', actionName)
+      }
+    },
+    clearCanvas () {
+      this.cxt.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+    },
+    saveData () {
+      let data = this.cxt.getImageData(0, 0, this.canvasWidth, this.canvasHeight)
+      if (this.historyIndex === -1) {
+        this.historyData = []
+      } else if (this.historyIndex > -1) {
+        this.historyData.splice(this.historyIndex + 1, this.historyData.length)
+      }
+      this.historyData.push(data)
+      this.historyIndex = this.historyData.length - 1
+    },
+    resetAction () {
+      let data = this.historyData[this.historyIndex + 1]
+      if (data) {
+        this.cxt.putImageData(data, 0, 0)
+        this.historyIndex = this.historyIndex + 1
+      }
+    },
+    cancelAction () {
+      if (this.historyIndex > 0) {
+        let data = this.historyData[this.historyIndex - 1]
+        this.cxt.putImageData(data, 0, 0)
+        this.historyIndex = this.historyIndex - 1
+      }
+    },
+    getPoint (e) {
+      let touch = e.touches[0]
+      let x = touch.clientX - this.offsetLeft
+      let y = touch.clientY - this.offsetTop
+      return { x, y }
     },
     start (e) {
-      this.draw(e)
+      this.doAction('start', this.getPoint(e))
     },
     move (e) {
-      this.draw(e, 'move')
+      this.doAction('move', this.getPoint(e))
     },
-    end (e) {
-      this.cxt.closePath()
+    end () {
+      this.doAction('end')
+    },
+    clear () {
+      this.doAction('clear')
     }
   }
 }
 </script>
 
 <style lang="less">
-.draw{
+@import "../../assets/css/iconfont/iconfont.css";
+@operator-color: #eee;
+.operator-btns{
+  padding:10px 0;
+  &>div{
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .color{
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+  }
+  .iconfont{
+    font-size: 25px;
+  }
+}
+.draw-wrap{
   background: #fff;
   width: 100%;
+  height: 300px;
+  position: relative;
+  .operator-wrap{
+    position: absolute;
+    bottom:0;
+  }
   &>canvas{
     display: block;
   }
