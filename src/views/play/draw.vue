@@ -3,8 +3,10 @@ div.draw-wrapper
   .draw-wrap
     canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
     .operator-wrap
+      color-select(@select-color = "selectColor")(v-show="selectColorShow")
+      line-select(:color="setting.color" v-show="selectLineShow")
   .operator-btns.weui-flex
-    div
+    div(@click="toggleSelectColor")
       .color(:style="{background: setting.color}")
     div
       span 4
@@ -18,8 +20,9 @@ div.draw-wrapper
 
 <script>
 import colorSelect from 'color-select'
+import lineSelect from 'line-width-select'
 export default {
-  components: { colorSelect },
+  components: { colorSelect, lineSelect },
   data () {
     return {
       lineWidth: 5,
@@ -30,6 +33,8 @@ export default {
       lineCap: 'round',
       historyData: [],
       historyIndex: -2,
+      selectColorShow: false,
+      selectLineShow: false,
       setting: { color: '#000' }
     }
   },
@@ -51,6 +56,15 @@ export default {
     })
   },
   methods: {
+    toggleSelectColor () {
+      this.selectColorShow = !this.selectColorShow
+      this.selectLineShow = false
+    },
+    selectColor (color) {
+      this.setting.color = color
+      this.cxt.strokeStyle = color
+      this.selectColorShow = false
+    },
     draw ({ x, y }, type = 'start') {
       let cxt = this.cxt
       switch (type) {
@@ -168,7 +182,9 @@ export default {
   position: relative;
   .operator-wrap{
     position: absolute;
+    width: 100%;
     bottom:0;
+    background: #fff;
   }
   &>canvas{
     display: block;

@@ -15,3 +15,12 @@ new Vue({
   router,
   render: h => h(App)
 })
+
+document.addEventListener('touchmove', e => {
+  e.preventDefault()
+}, false)
+
+require.ensure([], r => {
+  let fastclick = require('fastclick')
+  fastclick.attach(document.body)
+}, 'fastclick')

@@ -10,6 +10,7 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
+    "fastclick": "^1.0.6",
     "vue": "^2.0.1",
     "vue-router": "^2.0.1",
     "weui": "^1.0.2"
