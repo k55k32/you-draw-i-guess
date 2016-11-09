@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import routes from './routes'
 
 require('weui') // 加载微信样式
+require('./assets/animate.css') // 加载动画样式
 
 Vue.use(VueRouter)
 

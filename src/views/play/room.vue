@@ -15,30 +15,17 @@
           .weui-btn.weui-btn_primary 玩家{{i}}
       .begin
         router-link.weui-btn.weui-btn_primary(:to="{ name: 'begin' }") 开始游戏
-    .chat-input
-      form.weui-cells.weui-cells_form(@submit.prevent="sendMsg")
-        .weui-cell {{rcvMsg}} &nbsp;
-        .weui-cell.weui-cell_vcode
-          .weui-cell__bd
-            input.weui-input(v-model="msg")
-          .weui-cell__ft
-            a.weui-vcode-btn(@click="sendMsg") 发送
+    chat
     .function-menu 功能菜单
 </template>
 <!-- 进入房间后自动坐下，房主可开始游戏 -->
 <script>
+import Chat from './chat'
 export default {
+  components: { Chat },
   data () {
     return {
-      playerNumber: 8,
-      msg: '',
-      rcvMsg: []
-    }
-  },
-  methods: {
-    sendMsg () {
-      this.rcvMsg.push(this.msg)
-      this.msg = ''
+      playerNumber: 8
     }
   }
 }
