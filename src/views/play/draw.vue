@@ -3,8 +3,8 @@ div.draw-wrapper#draw-wrapper
   .draw-wrap
     canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
     .operator-wrap
-      color-select(@select-color = "selectColor")(v-show="selectColorShow")
-      line-select(@select-line = "selectLine")(:color="setting.color" v-show="selectLineShow")
+      color-select(@select-color = "selectColor" v-show="selectColorShow")
+      line-select(@select-line = "selectLine" v-show="selectLineShow")(:color="setting.color")
   .operator-btns.weui-flex
     div(@click="toggleSelectColor")
       .color(:style="{background: setting.color}")

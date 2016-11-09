@@ -5,7 +5,27 @@
 
 <script>
 export default {
-  name: 'app'
+  name: 'app',
+  methods: {
+    getParams () {
+      let search = window.location.search
+      search = search && search.substr(1)
+      let pv = search.split('&')
+      let param = {}
+      pv.forEach(pvStr => {
+        let p = pvStr.split('=')
+        param[p[0]] = p[1]
+        return param
+      })
+      return param
+    }
+  },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      let param = vm.getParams()
+      vm.$router.replace({path: '/' + (param.page || 'room')})
+    })
+  }
 }
 </script>
 

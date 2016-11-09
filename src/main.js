@@ -9,11 +9,19 @@ require('./assets/animate.css') // 加载动画样式
 Vue.use(VueRouter)
 
 const router = new VueRouter({ routes })
+
 /* eslint-disable no-new */
-new Vue({
+const app = new Vue({
   el: '#app',
   router,
   render: h => h(App)
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.length === 0) {
+    app.$router.replace({ name: 'no-page', params: {message: to.path} })
+  }
+  next()
 })
 
 document.addEventListener('touchmove', e => {
