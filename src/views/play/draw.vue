@@ -1,5 +1,5 @@
 <template lang="jade">
-div.draw-wrapper
+div.draw-wrapper#draw-wrapper
   .draw-wrap
     canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
     .operator-wrap
@@ -50,15 +50,20 @@ export default {
       let cxt = dom.getContext('2d')
       cxt.lineCap = this.lineCap
       cxt.lineJoin = this.lineCap
-      this.cxt = cxt
       cxt.lineWidth = this.setting.line
-      window.cxt = cxt
-      this.offsetTop = dom.offsetTop
-      this.offsetLeft = dom.offsetLeft
+      this.cxt = cxt
+      this.countOffset(dom)
       this.saveData()
     })
   },
   methods: {
+    countOffset (dom) {
+      if (dom) {
+        this.offsetTop = this.offsetTop + dom.offsetTop
+        this.offsetLeft = this.offsetLeft + dom.offsetLeft
+        this.countOffset(dom.offsetParent)
+      }
+    },
     toggleSelectLine () {
       this.selectLineShow = !this.selectLineShow
       this.selectColorShow = false
