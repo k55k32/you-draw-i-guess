@@ -6,6 +6,10 @@
 <script>
 export default {
   name: 'app',
+  created () {
+    let token = 'token_' + new Date().getTime()
+    this.login(token)
+  },
   methods: {
     getParams () {
       let search = window.location.search

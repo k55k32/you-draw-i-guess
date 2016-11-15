@@ -1,14 +1,13 @@
 exports.init = function (options) {
-  this.connnect = false
-
+  let events = {}
   const init = () => {
     this._ws = new window.WebSocket(options.path)
     this._ws.onopen = (e) => {
       this.connnect = true
       options.open.call(this, e)
     }
-    this._ws.onmessage = ({data}) => {
-      options.message.call(this, data)
+    this._ws.onmessage = ({ data }) => {
+      event('message', JSON.parse(data))
     }
     this._ws.onclose = (e) => {
       options._close()
@@ -40,7 +39,18 @@ exports.init = function (options) {
   }
 
   this.send = (data, type = -1) => {
-    this._ws.send({data, type, header: options.header})
+    let msg = {data, type, header: options.header}
+    this._ws.send(JSON.stringify(msg))
+  }
+
+  this.on = (name, fn) => {
+    if (!events[name]) events[name] = []
+    events[name].push(fn)
+  }
+
+  function event (name, data) {
+    let eventsArray = events[name]
+    eventsArray && eventsArray.forEach(fn => fn(data))
   }
 
   init()

@@ -10,11 +10,40 @@ Vue.use(VueRouter)
 
 const router = new VueRouter({ routes })
 
-WebSocketClient.init({
+const webSocket = WebSocketClient.init({
   path: 'ws://localhost:9001',
   open () {
     console.log('open success')
-    this.send('hello')
+  }
+})
+
+Vue.mixin({
+  data () {
+    return {
+      receiveMsg: false
+    }
+  },
+  created () {
+    if (this.receiveMsg) {
+      webSocket.on('message', msg => {
+        this.$execute(msg.type, msg)
+      })
+    }
+  },
+  methods: {
+    $execute (name, data) {
+      if (typeof this[name] === 'function') {
+        this[name](data)
+      } else {
+        console.log('unknow execute name:', this, data)
+      }
+    },
+    login (token) {
+      webSocket.setHeader({token})
+    },
+    send (msg, type) {
+      webSocket.send(msg, type)
+    }
   }
 })
 

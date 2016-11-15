@@ -18,14 +18,18 @@ export default {
       msg: '',
       rcvMsg: [],
       msgQueen: [],
-      msgNumber: 0
+      msgNumber: 0,
+      receiveMsg: true
     }
   },
   methods: {
-    sendMsg () {
-      this.msgQueen.push(this.msg)
-      this.msg = ''
+    chat (msg) {
+      this.msgQueen.push(msg.from.nickname + ':' + msg.data)
       this.putMsg()
+    },
+    sendMsg () {
+      this.send(this.msg, 'chat')
+      this.msg = ''
     },
     putMsg () {
       let msg = this.msgQueen.shift()
