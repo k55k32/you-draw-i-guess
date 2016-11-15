@@ -4,19 +4,8 @@
 </template>
 
 <script>
-import WebSocketClient from './WebSocketClient'
 export default {
   name: 'app',
-  created () {
-    let ws = WebSocketClient.init({
-      path: 'ws://localhost:9001',
-      open () {
-        console.log('websocket open hello')
-        ws.send('hello')
-      }
-    })
-    this.ws = ws
-  },
   methods: {
     getParams () {
       let search = window.location.search

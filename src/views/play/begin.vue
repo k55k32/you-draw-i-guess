@@ -1,10 +1,10 @@
 <template lang="jade">
-  .begin
-    .weui-cell
-      .weui-cell__bd 提示词语
-      .weui-cell__ft {{countTime}}
-    draw
-    chat
+.begin
+  .weui-cell
+    .weui-cell__bd 提示词语
+    .weui-cell__ft {{countTime}}
+  draw
+  chat
 </template>
 
 <script>

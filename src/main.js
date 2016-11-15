@@ -2,13 +2,21 @@ import Vue from 'vue'
 import App from './App'
 import VueRouter from 'vue-router'
 import routes from './routes'
-
-require('weui') // 加载微信样式
-require('./assets/animate.css') // 加载动画样式
+import WebSocketClient from './WebSocketClient'
+import 'weui'
+import './assets/animate.css'
 
 Vue.use(VueRouter)
 
 const router = new VueRouter({ routes })
+
+WebSocketClient.init({
+  path: 'ws://localhost:9001',
+  open () {
+    console.log('open success')
+    this.send('hello')
+  }
+})
 
 /* eslint-disable no-new */
 const app = new Vue({
