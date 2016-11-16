@@ -38,6 +38,7 @@ Vue.mixin({
     },
     login (token) {
       webSocket.setHeader({token})
+      this.send(token, 'login')
     },
     send (msg, type) {
       webSocket.send(msg, type)

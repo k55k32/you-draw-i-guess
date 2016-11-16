@@ -58,6 +58,15 @@ export default {
       this.saveData()
     })
   },
+  watch: {
+    setting: {
+      handler (val) {
+        this.cxt.lineWidth = val.line
+        this.cxt.strokeStyle = val.color
+      },
+      deep: true
+    }
+  },
   methods: {
     countOffset (dom) {
       if (dom) {
@@ -76,12 +85,10 @@ export default {
     },
     selectLine (line) {
       this.setting.line = line
-      this.cxt.lineWidth = line
       this.selectLineShow = false
     },
     selectColor (color) {
       this.setting.color = color
-      this.cxt.strokeStyle = color
       this.selectColorShow = false
     },
     draw ({ x, y }, type = 'start') {
@@ -105,6 +112,7 @@ export default {
         case 'start':
         case 'move':
           this.draw(data, actionName)
+          if (sync) this.send({ actionName, data, setting: this.setting }, 'drawAction')
           break
         case 'end':
           this.cxt.closePath()
@@ -123,13 +131,19 @@ export default {
         default:
           console.log('unknow actionName:', actionName)
       }
-      if (sync) {
+
+      if (sync && actionName !== 'move' && actionName !== 'start') {
         this.send({
           dataUrl: this.canvas.toDataURL()
-        }, 'drawAction')
+        }, 'drawImage')
       }
     },
     drawAction ({ data }) {
+      this.setting = data.setting
+      this.doAction(data.actionName, data.data, false)
+    },
+    drawImage ({ data }) {
+      this.clearCanvas()
       var img = new window.Image()
       img.onload = () => {
         this.cxt.drawImage(img, 0, 0)
