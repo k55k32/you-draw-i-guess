@@ -34,8 +34,6 @@ Vue.mixin({
     $execute (name, data) {
       if (typeof this[name] === 'function') {
         this[name](data)
-      } else {
-        console.log('unknow execute name:', this, data)
       }
     },
     login (token) {

@@ -36,7 +36,8 @@ export default {
       historyIndex: -2,
       selectColorShow: false,
       selectLineShow: false,
-      setting: { color: '#000', line: 4 }
+      setting: { color: '#000', line: 4 },
+      receiveMsg: true
     }
   },
   mounted () {
@@ -51,6 +52,7 @@ export default {
       cxt.lineCap = this.lineCap
       cxt.lineJoin = this.lineCap
       cxt.lineWidth = this.setting.line
+      this.canvas = dom
       this.cxt = cxt
       this.countOffset(dom)
       this.saveData()
@@ -98,7 +100,7 @@ export default {
       }
       cxt.stroke()
     },
-    doAction (actionName, data) {
+    doAction (actionName, data, sync = true) {
       switch (actionName) {
         case 'start':
         case 'move':
@@ -121,6 +123,18 @@ export default {
         default:
           console.log('unknow actionName:', actionName)
       }
+      if (sync) {
+        this.send({
+          dataUrl: this.canvas.toDataURL()
+        }, 'drawAction')
+      }
+    },
+    drawAction ({ data }) {
+      var img = new window.Image()
+      img.onload = () => {
+        this.cxt.drawImage(img, 0, 0)
+      }
+      img.src = data.dataUrl
     },
     clearCanvas () {
       this.cxt.clearRect(0, 0, this.canvasWidth, this.canvasHeight)

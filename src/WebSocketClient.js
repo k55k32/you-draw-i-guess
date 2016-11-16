@@ -1,15 +1,21 @@
 exports.init = function (options) {
+  let connected = false
   let events = {}
+  let messageCache = []
+  let _ws = ''
   const init = () => {
     this._ws = new window.WebSocket(options.path)
+    _ws = this._ws
     this._ws.onopen = (e) => {
-      this.connnect = true
+      connected = true
+      options._open()
       options.open.call(this, e)
     }
     this._ws.onmessage = ({ data }) => {
       event('message', JSON.parse(data))
     }
     this._ws.onclose = (e) => {
+      connected = false
       options._close()
       options.close.call(this, e)
     }
@@ -20,8 +26,9 @@ exports.init = function (options) {
 
   const opt = {
     open () {},
+    _open () { sendMessageCache() },
     _close () {
-      setTimeout(init, 1000)
+      setTimeout(init, 5000)
     },
     close () {},
     message () {},
@@ -39,8 +46,25 @@ exports.init = function (options) {
   }
 
   this.send = (data, type = -1) => {
-    let msg = {data, type, header: options.header}
-    this._ws.send(JSON.stringify(msg))
+    let msg = {data, type}
+    sendMsg(msg)
+  }
+
+  function sendMessageCache () {
+    if (messageCache.length) {
+      let msg = messageCache.shift()
+      sendMsg(msg)
+      sendMessageCache()
+    }
+  }
+
+  function sendMsg (msg) {
+    if (connected) {
+      msg.header = options.header
+      _ws.send(JSON.stringify(msg))
+    } else {
+      messageCache.push(msg)
+    }
   }
 
   this.on = (name, fn) => {
