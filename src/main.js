@@ -11,7 +11,7 @@ Vue.use(VueRouter)
 const router = new VueRouter({ routes })
 
 const webSocket = WebSocketClient.init({
-  path: 'ws://localhost:9001',
+  path: 'ws://42.96.203.79:9001',
   open () {
     console.log('open success')
   }

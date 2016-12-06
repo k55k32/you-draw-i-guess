@@ -12,9 +12,9 @@ div.draw-wrapper#draw-wrapper
       .line(:style="{height: setting.line + 'px', background: setting.color}")
       {{setting.line}}
     div
-      .iconfont.icon-weibiaoti545(@click="doAction('cancel')")
+      .iconfont.icon-weibiaoti545(@click="doAction('undo')")
     div
-      .iconfont.icon-chexiao(@click="doAction('reset')")
+      .iconfont.icon-chexiao(@click="doAction('redo')")
     div
       .iconfont.icon-shanchu(@click="clear")
 </template>
@@ -33,7 +33,7 @@ export default {
       canvasWidth: 0,
       lineCap: 'round',
       historyData: [],
-      historyIndex: -2,
+      historyIndex: -1,
       selectColorShow: false,
       selectLineShow: false,
       setting: { color: '#000', line: 4 },
@@ -65,6 +65,18 @@ export default {
         this.cxt.strokeStyle = val.color
       },
       deep: true
+    },
+    historyIndex () {
+      let data = this.historyData[this.historyIndex]
+      if (data) this.cxt.putImageData(data, 0, 0)
+    }
+  },
+  computed: {
+    canUndo () {
+      return this.historyIndex > 0
+    },
+    canRedo () {
+      return this.historyIndex < this.historyData.length - 1
     }
   },
   methods: {
@@ -122,11 +134,11 @@ export default {
           this.clearCanvas()
           this.saveData()
           break
-        case 'cancel':
-          this.cancelAction()
+        case 'undo':
+          this.undo()
           break
-        case 'reset':
-          this.resetAction()
+        case 'redo':
+          this.redo()
           break
         default:
           console.log('unknow actionName:', actionName)
@@ -155,27 +167,15 @@ export default {
     },
     saveData () {
       let data = this.cxt.getImageData(0, 0, this.canvasWidth, this.canvasHeight)
-      if (this.historyIndex === -1) {
-        this.historyData = []
-      } else if (this.historyIndex > -1) {
-        this.historyData.splice(this.historyIndex + 1, this.historyData.length)
-      }
+      this.historyData.splice(this.historyIndex + 1, this.historyData.length)
       this.historyData.push(data)
       this.historyIndex = this.historyData.length - 1
     },
-    resetAction () {
-      let data = this.historyData[this.historyIndex + 1]
-      if (data) {
-        this.cxt.putImageData(data, 0, 0)
-        this.historyIndex = this.historyIndex + 1
-      }
+    undo () {
+      this.canUndo && this.historyIndex --
     },
-    cancelAction () {
-      if (this.historyIndex > 0) {
-        let data = this.historyData[this.historyIndex - 1]
-        this.cxt.putImageData(data, 0, 0)
-        this.historyIndex = this.historyIndex - 1
-      }
+    redo () {
+      this.canRedo && this.historyIndex ++
     },
     getPoint (e) {
       let touch = e.touches[0]
