@@ -1,13 +1,19 @@
 <template lang="pug">
-  div.container.index
-    div.user-info 用户信息
+  div.index
+    mt-header(title="你画我猜-游戏大厅")
+      mt-button(slot="left" icon="search" @click="inputRoomNumber") 查找房间
+      router-link(:to="{name:'create-room'}", slot="right")
+        mt-button 创建房间
+    user-info
     div.room-list
       mt-loadmore(:top-method="loadTop", :bottom-method="loadBottom", :bottom-all-loaded="allLoad" ref="loadmore") 房间列表
         div(v-for="r in roomList") 房间{{r}}
 </template>
 
 <script>
+import UserInfo from './user/info'
 export default {
+  components: {UserInfo},
   computed: {
     loadEL () {
       return this.$refs.loadmore
@@ -16,10 +22,18 @@ export default {
   data () {
     return {
       roomList: 50,
-      allLoad: false
+      allLoad: false,
+      user: {
+        name: '玩家 001'
+      }
     }
   },
   methods: {
+    inputRoomNumber () {
+      this.$messageBox.prompt('请输入房间号').then(({value}) => {
+        this.$message('正在查找房间号' + value)
+      })
+    },
     loadTop () {
       this.refresh()
       this.loadEL.onTopLoaded()
@@ -30,7 +44,7 @@ export default {
     },
     loadMore () {
       console.log('load-more')
-      this.roomList *= 3
+      this.roomList *= 2
     },
     refresh () {
       console.log('refresh')
@@ -41,7 +55,8 @@ export default {
 </script>
 
 <style lang="less">
-.index.container{
+@import "~assets/less/base.less";
+.index{
   height: 100%;
   display: flex;
   flex-direction: column;

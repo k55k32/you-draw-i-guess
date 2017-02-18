@@ -1,12 +1,14 @@
 import Vue from 'vue'
-import App from './App'
+import App from '~/App'
 import VueRouter from 'vue-router'
-import routes from './routes'
-import store from './store'
+import routes from '~/routes'
+import store from '~/store'
 import WebSocketClient from './WebSocketClient'
 import MintUI from 'mint-ui'
 import 'mint-ui/lib/style.css'
-import './assets/less/golbal.less'
+import '~/assets/less/golbal.less'
+import '~/assets/less/components.less'
+import Constant from './constant'
 
 Vue.use(VueRouter)
 Vue.use(MintUI)
@@ -25,6 +27,20 @@ Vue.prototype.isIPhone = () => {
 }
 Vue.prototype.isAndroid = () => {
   return window.navigator.userAgent.indexOf('Android') > -1
+}
+
+Vue.prototype.$const = type => {
+  return Constant[type]
+}
+
+Vue.prototype.$messageBox = MintUI.MessageBox
+
+Vue.prototype.$message = (message, time = message.length / 4 * 1000) => {
+  return MintUI.Toast({
+    message: message,
+    position: 'bottom',
+    duration: time
+  })
 }
 
 Vue.mixin({

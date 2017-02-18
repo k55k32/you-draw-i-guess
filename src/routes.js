@@ -23,5 +23,10 @@ export default [
     path: '/begin',
     name: 'begin',
     component: r => require(['src/views/play/begin.vue'], r)
+  },
+  {
+    path: '/create-room',
+    name: 'create-room',
+    component: r => require(['src/views/room/create.vue'], r)
   }
 ]
