@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
   div.color-select
     div(v-for="c, index in colors")
       span.color-item(:style="{background: c, border: getBorder(c)}")(:class="{selected: index === currentColor}")(@click="selectColor(index)")

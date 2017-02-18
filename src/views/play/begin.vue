@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 .begin
   .weui-cell
     .weui-cell__bd 提示词语

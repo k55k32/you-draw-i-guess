@@ -10,6 +10,11 @@ export default [
     component: r => require(['src/views/no-page.vue'], r)
   },
   {
+    path: '/index',
+    name: 'index',
+    component: r => require(['src/views/index.vue'], r)
+  },
+  {
     path: '/room',
     name: 'room',
     component: r => require(['src/views/play/room.vue'], r)

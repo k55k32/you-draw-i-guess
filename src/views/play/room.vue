@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 div#room-test
   .title
     .weui-panel

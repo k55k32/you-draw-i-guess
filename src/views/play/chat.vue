@@ -1,9 +1,11 @@
-<template lang="jade">
+<template lang="pug">
 .chat-input
   form.weui-cells.weui-cells_form(@submit.prevent="sendMsg")
     .weui-cell.chat-wrap
-      transition-group(name="msg-group")(enter-active-class="animated fadeInUp" tag="div")
-        div(v-for="msg in rcvMsg")(key="msg") {{msg}}
+      transition-group(name="msg-group"
+      enter-active-class="animated fadeInUp"
+      tag="div")
+        div(v-for="msg in rcvMsg" key="msg") {{msg}}
     .weui-cell.weui-cell_vcode
       .weui-cell__bd
         input.weui-input(v-model="msg")

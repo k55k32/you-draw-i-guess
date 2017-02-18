@@ -2,11 +2,14 @@ import Vue from 'vue'
 import App from './App'
 import VueRouter from 'vue-router'
 import routes from './routes'
+import store from './store'
 import WebSocketClient from './WebSocketClient'
-import 'weui'
-import './assets/animate.css'
+import MintUI from 'mint-ui'
+import 'mint-ui/lib/style.css'
+import './assets/less/golbal.less'
 
 Vue.use(VueRouter)
+Vue.use(MintUI)
 
 const router = new VueRouter({ routes })
 
@@ -16,6 +19,13 @@ const webSocket = WebSocketClient.init({
     console.log('open success')
   }
 })
+
+Vue.prototype.isIPhone = () => {
+  return window.navigator.userAgent.indexOf('iPhone') > -1
+}
+Vue.prototype.isAndroid = () => {
+  return window.navigator.userAgent.indexOf('Android') > -1
+}
 
 Vue.mixin({
   data () {
@@ -47,24 +57,13 @@ Vue.mixin({
 })
 
 /* eslint-disable no-new */
-const app = new Vue({
+new Vue({
   el: '#app',
+  store,
   router,
   render: h => h(App)
-})
-
-router.beforeEach((to, from, next) => {
-  if (to.matched.length === 0) {
-    app.$router.replace({ name: 'no-page', params: {message: to.path} })
-  }
-  next()
 })
 
 document.addEventListener('touchmove', e => {
   e.preventDefault()
 }, false)
-
-require.ensure([], r => {
-  let fastclick = require('fastclick')
-  fastclick.attach(document.body)
-}, 'fastclick')
