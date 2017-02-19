@@ -45,7 +45,7 @@ export default {
     showBackError (data) {
       this.loaded()
       this.$router.replace('/')
-      this.$messageBox.alert(data.message)
+      this.$message(data.message)
     },
     enterSuccess (data) {
       this.room = data
