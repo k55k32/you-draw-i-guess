@@ -4,6 +4,7 @@ div.user-info
   div.name {{user.username}}
   div.after
     mt-button(type="primary" size="small" @click="showUpdateName" plain) 修改昵称
+    router-link(tag="span", :to="{name: 'create-room'}")
 </template>
 
 <script>
@@ -47,7 +48,7 @@ export default {
 <style lang="less">
 @import "~assets/less/base.less";
 .user-info{
-  @base-padding: 10px;
+  @base-padding: 5px;
   display: flex;
   align-items: center;
   padding: @base-padding;
@@ -56,14 +57,15 @@ export default {
     font-size: 3em;
     background-color: @main-color;
     color: @white;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .name{
     color: @main-color;
+    overflow: hidden;
     flex: 1;
     padding: @base-padding;
   }

@@ -3,7 +3,7 @@
     mt-header(title="创建房间")
       mt-button(slot="left" icon="back" @click="$router.back()") 返回
       mt-button(slot="right" @click="createRoom") 完成
-    form
+    form(@submit.prevent="createRoom")
       mt-field(label="房间名称" placeholder="请输入房间名", v-model="room.name")
       mt-radio(title="房间类型" v-model="room.type",:options="options")
         //- mt-field(label="玩家数量", v-model="room.playNumber")

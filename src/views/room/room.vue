@@ -44,9 +44,8 @@ export default {
   methods: {
     showBackError (data) {
       this.loaded()
-      this.$messageBox.alert(data.message).then(_ => {
-        this.$router.replace('/')
-      })
+      this.$router.replace('/')
+      this.$messageBox.alert(data.message)
     },
     enterSuccess (data) {
       this.room = data
