@@ -5,21 +5,26 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    user: {}
+    user: null
   },
   mutations: {
-    register (state, user) {
+    SAVE_USER (state, user) {
       state.user = user
+      LS.put('user', user)
     }
   },
   actions: {
-    login ({commit, state}, user = LS.get('user')) {
-      if (!user) {
-        user = {
-          name: '玩家-' + new Date().getTime()
-        }
-      }
-      commit('register', user)
+    login ({commit, state}, user) {
+      commit('SAVE_USER', user)
+    },
+    'change-user' ({commit, state}, userInfo) {
+      let user = state.user
+      commit('SAVE_USER', {...user, ...userInfo})
+    }
+  },
+  getters: {
+    user: state => {
+      return state.user || LS.get('user') || {}
     }
   }
 })

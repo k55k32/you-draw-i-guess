@@ -1,7 +1,7 @@
 <template lang="pug">
 div.user-info
   div.head {{firstWord}}
-  div.name {{user.name}}
+  div.name {{user.username}}
   div.after
     mt-button(type="primary" size="small" @click="showUpdateName" plain) 修改昵称
 </template>
@@ -11,27 +11,31 @@ import { MessageBox } from 'mint-ui'
 export default {
   data () {
     return {
-      user: {
-        name: '玩家001'
-      }
     }
   },
   computed: {
+    user () {
+      return this.$store.getters.user
+    },
     firstWord () {
-      return this.user.name && this.user.name.substr(0, 1)
+      const user = this.user
+      return user.username && user.username.substr(0, 1)
     }
   },
   methods: {
     showUpdateName () {
       MessageBox.prompt('请输入昵称', {
-        inputPlaceholder: this.user.name
+        inputPlaceholder: this.user.username
       }).then((data) => {
         this.changeUserName(data.value)
       })
     },
     changeUserName (v) {
       if (v) {
-        this.user.name = v
+        this.$store.dispatch('change-user', {
+          username: v
+        })
+        this.$webSocket.send({username: v}, 'changename')
       } else {
         this.$message('你没有输入昵称哦！')
       }

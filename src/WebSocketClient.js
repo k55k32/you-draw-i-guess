@@ -12,7 +12,9 @@ exports.init = function (options) {
       options.open.call(this, e)
     }
     this._ws.onmessage = ({ data }) => {
-      event('message', JSON.parse(data))
+      const message = JSON.parse(data)
+      event('message', message)
+      event(message.type, message.data)
     }
     this._ws.onclose = (e) => {
       connected = false
@@ -32,18 +34,9 @@ exports.init = function (options) {
     },
     close () {},
     message () {},
-    error () {},
-    header: {}
+    error () {}
   }
   options = {...opt, ...options}
-
-  this.setHeader = (key, value) => {
-    if (typeof key === 'object') {
-      options.header = {...options.header, ...key}
-    } else {
-      options.header[key] = value
-    }
-  }
 
   this.send = (data, type = -1) => {
     let msg = {data, type}
@@ -60,7 +53,6 @@ exports.init = function (options) {
 
   function sendMsg (msg) {
     if (connected) {
-      msg.header = options.header
       _ws.send(JSON.stringify(msg))
     } else {
       messageCache.push(msg)
@@ -68,8 +60,10 @@ exports.init = function (options) {
   }
 
   this.on = (name, fn) => {
-    if (!events[name]) events[name] = []
-    events[name].push(fn)
+    if (typeof fn === 'function') {
+      if (!events[name]) events[name] = []
+      events[name].push(fn)
+    }
   }
 
   function event (name, data) {

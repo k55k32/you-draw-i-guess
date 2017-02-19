@@ -25,7 +25,7 @@ function getProcess (type) {
 
 export default{
   get (key) {
-    let stringData = localStorage.get(key)
+    let stringData = localStorage.getItem(key)
     if (stringData) {
       const indexSPL = stringData.indexOf(SPLIT_STR)
       const type = stringData.substr(0, indexSPL)

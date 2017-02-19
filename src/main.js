@@ -15,13 +15,6 @@ Vue.use(MintUI)
 
 const router = new VueRouter({ routes })
 
-const webSocket = WebSocketClient.init({
-  path: 'ws://118.190.4.119:9001',
-  open () {
-    console.log('open success')
-  }
-})
-
 Vue.prototype.isIPhone = () => {
   return window.navigator.userAgent.indexOf('iPhone') > -1
 }
@@ -33,6 +26,15 @@ Vue.prototype.$const = type => {
   return Constant[type]
 }
 
+Vue.prototype.loading = text => {
+  Vue.prototype._currentLoading = MintUI.Indicator.open({
+    text, spinnerType: 'snake'
+  })
+}
+Vue.prototype.loaded = _ => {
+  Vue.nextTick(_ => MintUI.Indicator.close())
+}
+
 Vue.prototype.$messageBox = MintUI.MessageBox
 
 Vue.prototype.$message = (message, time = message.length / 4 * 1000) => {
@@ -42,20 +44,30 @@ Vue.prototype.$message = (message, time = message.length / 4 * 1000) => {
     duration: time
   })
 }
+router.beforeEach((to, from, next) => {
+  Vue.prototype.loading('连接中...')
+  if (!Vue.prototype.$webSocket) {
+    const webSocket = WebSocketClient.init({
+      path: 'ws://localhost:9001',
+      open () {
+        let user = store.getters.user
+        webSocket.send(user, 'login')
+      }
+    })
+    webSocket.on('login', user => {
+      store.dispatch('login', user)
+      next()
+    })
+    Vue.prototype.$webSocket = webSocket
+  } else {
+    next()
+  }
+})
+router.afterEach(() => {
+  Vue.prototype.loaded()
+})
 
 Vue.mixin({
-  data () {
-    return {
-      receiveMsg: false
-    }
-  },
-  created () {
-    if (this.receiveMsg) {
-      webSocket.on('message', msg => {
-        this.$execute(msg.type, msg)
-      })
-    }
-  },
   methods: {
     $execute (name, data) {
       if (typeof this[name] === 'function') {
@@ -63,11 +75,11 @@ Vue.mixin({
       }
     },
     login (token) {
-      webSocket.setHeader({token})
+      // webSocket.setHeader({token})
       this.send(token, 'login')
     },
     send (msg, type) {
-      webSocket.send(msg, type)
+      // webSocket.send(msg, type)
     }
   }
 })
