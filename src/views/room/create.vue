@@ -4,7 +4,7 @@
       mt-button(slot="left" icon="back" @click="$router.back()") 返回
       mt-button(slot="right" @click="createRoom") 完成
     form
-      mt-field(label="房间名称" placeholder="请输入房间名", :value="room.name")
+      mt-field(label="房间名称" placeholder="请输入房间名", v-model="room.name")
       mt-radio(title="房间类型" v-model="room.type",:options="options")
         //- mt-field(label="玩家数量", v-model="room.playNumber")
       //- mt-field(label="游戏次数（没人）" v-model="room.playTimes")
@@ -26,17 +26,25 @@ export default {
   data () {
     return {
       room: {
-        name: '',
+        name: this.$store.getters.user.username + '的房间',
         playNumber: 8,
         type: '1',
         playTimes: 3
+      },
+      socketEvents: {
+        'createRoom': this.createSuccess
       }
     }
   },
   methods: {
+    createSuccess (room) {
+      this.loaded()
+      this.$router.replace({ name: 'room', params: {id: room.id} })
+    },
     createRoom () {
-      if (this.name) {
-        this.$message('创建房间中')
+      if (this.room.name) {
+        this.loading('正在创建房间')
+        this.$webSocket.send(this.room, 'createRoom')
       } else {
         this.$message('请输入房间名称')
       }

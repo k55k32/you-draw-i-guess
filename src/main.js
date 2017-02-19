@@ -54,10 +54,12 @@ router.beforeEach((to, from, next) => {
         webSocket.send(user, 'login')
       }
     })
-    webSocket.on('login', user => {
+    const userLogin = user => {
       store.dispatch('login', user)
       next()
-    })
+      webSocket.off('login', userLogin)
+    }
+    webSocket.on('login', userLogin)
     Vue.prototype.$webSocket = webSocket
   } else {
     next()
@@ -68,15 +70,27 @@ router.afterEach(() => {
 })
 
 Vue.mixin({
+  created () {
+    const events = this.socketEvents
+    if (events) {
+      Object.keys(events).forEach(k => {
+        this.$webSocket.on(k, events[k].bind(this))
+      })
+    }
+  },
+  beforeDestory () {
+    const events = this.socketEvents
+    if (events) {
+      Object.keys(events).forEach(k => {
+        this.$webSocket.off(k, events[k].bind(this))
+      })
+    }
+  },
   methods: {
     $execute (name, data) {
       if (typeof this[name] === 'function') {
         this[name](data)
       }
-    },
-    login (token) {
-      // webSocket.setHeader({token})
-      this.send(token, 'login')
     },
     send (msg, type) {
       // webSocket.send(msg, type)

@@ -14,7 +14,11 @@ exports.init = function (options) {
     this._ws.onmessage = ({ data }) => {
       const message = JSON.parse(data)
       event('message', message)
-      event(message.type, message.data)
+      if (message.id) {
+        event(message.id, message.data)
+      } else {
+        event(message.type, message.data)
+      }
     }
     this._ws.onclose = (e) => {
       connected = false
@@ -59,10 +63,39 @@ exports.init = function (options) {
     }
   }
 
+  this.request = (data, type) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const messageId = type + '_' + new Date().getTime()
+        const msg = {data, type, id: messageId}
+        this.on(messageId, (data) => {
+          resolve(data)
+          delete events[messageId]
+        })
+        sendMsg(msg)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
   this.on = (name, fn) => {
     if (typeof fn === 'function') {
       if (!events[name]) events[name] = []
       events[name].push(fn)
+    }
+  }
+
+  this.off = (name, fn) => {
+    const eventsArray = events[name]
+    if (eventsArray) {
+      eventsArray.every(eventFn => {
+        if (eventFn === fn) {
+          eventsArray.splice(eventsArray.indexOf(eventFn), 1)
+          return false
+        }
+        return true
+      })
     }
   }
 

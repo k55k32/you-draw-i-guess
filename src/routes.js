@@ -15,9 +15,9 @@ export default [
     component: r => require(['src/views/index.vue'], r)
   },
   {
-    path: '/room',
+    path: '/room/:id',
     name: 'room',
-    component: r => require(['src/views/play/room.vue'], r)
+    component: r => require(['src/views/room/room.vue'], r)
   },
   {
     path: '/begin',
