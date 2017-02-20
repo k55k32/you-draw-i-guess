@@ -7,7 +7,7 @@
     user-info.shadow
     div.room-list
       mt-loadmore(:top-method="loadTop", :bottom-method="loadBottom", :bottom-all-loaded="allLoad" ref="loadmore", :bottomDistance="50")
-        div.room-item(v-for="r in roomList")
+        div.room-item(v-for="r in roomList", :key="r.id")
           mt-header.light-header
             div.room-name(slot="left") {{r.id + ': ' + r.name}}
             div.status(slot="right", :class="{ready: r.status === 1, started: r.status === 2}") {{$const('RoomStatus')[r.status]}}
@@ -25,13 +25,12 @@
 import UserInfo from './user/info'
 export default {
   components: {UserInfo},
-  computed: {
-    loadEL () {
-      return this.$refs.loadmore
-    }
-  },
   data () {
     return {
+      socketEvents: {
+        roomCreated: this.insertRoom,
+        roomChanged: this.roomUpdate
+      },
       roomList: 50,
       allLoad: false,
       user: {
@@ -39,10 +38,52 @@ export default {
       }
     }
   },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$webSocket.send({}, 'enterIndex')
+    })
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$webSocket.send({}, 'leaveIndex')
+    next()
+  },
   created () {
     this.loadRoomList()
   },
+  computed: {
+    loadEL () {
+      return this.$refs.loadmore
+    },
+    roomMap () {
+      const roomMap = {}
+      this.roomList.forEach(r => {
+        roomMap[r.id] = r
+      })
+      console.log('roomMap', roomMap)
+      return roomMap
+    }
+  },
   methods: {
+    insertRoom (room) {
+      if (this.roomMap[room.id]) {
+        this.roomUpdate(room)
+      } else {
+        this.roomList.unshift(room)
+      }
+    },
+    roomUpdate (room) {
+      console.log('update', room)
+      let oldRoom = this.roomMap[room.id]
+      if (oldRoom) {
+        this.roomList = this.roomList.map(r => {
+          if (r.id === room.id) {
+            return {...r, ...room}
+          } else {
+            return r
+          }
+        })
+      }
+    },
     loadRoomList () {
       return this.$webSocket.request({}, 'roomList').then(data => {
         this.roomList = data

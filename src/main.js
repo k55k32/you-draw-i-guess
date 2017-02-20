@@ -51,15 +51,12 @@ router.beforeEach((to, from, next) => {
       path: 'ws://192.168.31.209:9001',
       open () {
         let user = store.getters.user
-        webSocket.send(user, 'login')
+        webSocket.request(user, 'login').then((user) => {
+          store.dispatch('login', user)
+          next()
+        })
       }
     })
-    const userLogin = user => {
-      store.dispatch('login', user)
-      next()
-      webSocket.off('login', userLogin)
-    }
-    webSocket.on('login', userLogin)
     Vue.prototype.$webSocket = webSocket
   } else {
     next()
