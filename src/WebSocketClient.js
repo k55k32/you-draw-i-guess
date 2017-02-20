@@ -15,7 +15,7 @@ exports.init = function (options) {
       const message = JSON.parse(data)
       event('message', message)
       if (message.id) {
-        event(message.id, message.data)
+        event(message.id, message)
       } else {
         event(message.type, message.data)
       }
@@ -68,7 +68,10 @@ exports.init = function (options) {
       try {
         const messageId = type + '_' + new Date().getTime()
         const msg = {data, type, id: messageId}
-        this.on(messageId, (data) => {
+        this.on(messageId, ({data, error}) => {
+          if (error === true) {
+            reject(data)
+          }
           resolve(data)
           delete events[messageId]
         })

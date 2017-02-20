@@ -1,15 +1,17 @@
 <template lang="pug">
 div.draw-wrapper#draw-wrapper
   .draw-wrap
-    canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
-    .operator-wrap
+    canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end" v-if="canDraw")
+    canvas#draw-convas(v-else)
+    .operator-wrap(v-if="canDraw")
       color-select(@select-color = "selectColor" v-show="selectColorShow")
       line-select(@select-line = "selectLine" v-show="selectLineShow", :color="setting.color")
-  .operator-btns.weui-flex
+  .operator-btns.flex(v-if="canDraw")
     div(@click="toggleSelectColor")
       .color(:style="{background: setting.color}")
     div(@click="toggleSelectLine")
-      .line(:style="{height: setting.line + 'px', background: setting.color}") {{setting.line}}
+      .line(:style="{height: setting.line + 'px', background: setting.color}")
+      div {{setting.line}}
     div
       .iconfont.icon-weibiaoti545(@click="doAction('undo')")
     div
@@ -23,8 +25,16 @@ import colorSelect from 'color-select'
 import lineSelect from 'line-width-select'
 export default {
   components: { colorSelect, lineSelect },
+  props: ['canDraw', 'imageData'],
   data () {
     return {
+      socketEvents: {
+        drawAction (data) {
+          this.setting = data.setting
+          this.doAction(data.actionName, data.data, false)
+        },
+        drawImage: this.drawImage
+      },
       lineWidth: 5,
       offsetTop: 0,
       offsetLeft: 0,
@@ -55,6 +65,12 @@ export default {
       this.cxt = cxt
       this.countOffset(dom)
       this.saveData()
+      this.$watch('imageData', v => {
+        console.log(this.imageData)
+        this.$nextTick(_ => {
+          this.drawImage(v)
+        })
+      })
     })
   },
   watch: {
@@ -66,8 +82,9 @@ export default {
       deep: true
     },
     historyIndex () {
+      if (!this.canDraw) return
       let data = this.historyData[this.historyIndex]
-      if (data) this.cxt.putImageData(data, 0, 0)
+      if (data) this.sendImage(data)
     }
   },
   computed: {
@@ -79,6 +96,14 @@ export default {
     }
   },
   methods: {
+    drawImage (data) {
+      this.clearCanvas()
+      var img = new window.Image()
+      img.onload = () => {
+        this.cxt.drawImage(img, 0, 0)
+      }
+      img.src = data.dataUrl
+    },
     countOffset (dom) {
       if (dom) {
         this.offsetTop = this.offsetTop + dom.offsetTop
@@ -123,7 +148,7 @@ export default {
         case 'start':
         case 'move':
           this.draw(data, actionName)
-          if (sync) this.send({ actionName, data, setting: this.setting }, 'drawAction')
+          if (sync) this.sendAction({ actionName, data, setting: this.setting })
           break
         case 'end':
           this.cxt.closePath()
@@ -144,30 +169,23 @@ export default {
       }
 
       if (sync && actionName !== 'move' && actionName !== 'start') {
-        this.send({
-          dataUrl: this.canvas.toDataURL()
-        }, 'drawImage')
       }
     },
-    drawAction ({ data }) {
-      this.setting = data.setting
-      this.doAction(data.actionName, data.data, false)
+    sendImage (data) {
+      this.canDraw && this.$webSocket.send({
+        dataUrl: data
+      }, 'drawImage')
     },
-    drawImage ({ data }) {
-      this.clearCanvas()
-      var img = new window.Image()
-      img.onload = () => {
-        this.cxt.drawImage(img, 0, 0)
-      }
-      img.src = data.dataUrl
+    sendAction (action) {
+      this.canDraw && this.$webSocket.send(action, 'drawAction')
     },
     clearCanvas () {
       this.cxt.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
     },
     saveData () {
-      let data = this.cxt.getImageData(0, 0, this.canvasWidth, this.canvasHeight)
+      if (!this.canDraw) return
       this.historyData.splice(this.historyIndex + 1, this.historyData.length)
-      this.historyData.push(data)
+      this.historyData.push(this.canvas.toDataURL())
       this.historyIndex = this.historyData.length - 1
     },
     undo () {

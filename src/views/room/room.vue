@@ -1,19 +1,17 @@
 <template lang="pug">
 div
-  mt-header(:title="`游戏名称: ${room.name}`")
+  mt-header(:title="room.name")
     mt-button(slot="left" icon="back" @click="leavlRoom") 离开房间
     mt-button(slot="right") 房间号 {{room.id}}
   .player-waiting
-    .player-item(v-for="user in userMap", :key="user.id")
+    .player-item(v-for="user,index in users", :key="user.id", :class="{master: index === 0, me: me.id === user.id}")
       .head {{user.username.substr(0,1)}}
       .username {{user.username}}
     .player-item.empty-item(v-for="emptyUser in emptyNumber")
       .head 空
       .username 等待加入
   .begin(v-if="isRoomMaster")
-    router-link(:to="{ name: 'begin' }", tag="span" v-if="canBegin")
-      mt-button(size="large" type="primary") 开始游戏
-    mt-button(size="large" type="primary" disabled v-else) 至少两人才能开始
+    mt-button(size="large" type="primary", :disabled="!canBegin", @click="beginGame") {{canBegin ? '开始游戏' : '至少两人才能开始'}}
   chat
 </template>
 <!-- 进入房间后自动坐下，房主可开始游戏 -->
@@ -24,22 +22,26 @@ export default {
   beforeRouteEnter (to, from, next) {
     next(vm => {
       vm.loading()
-      vm.$webSocket.request({id: vm.$route.params.id}, 'enterRoom').then(vm.enterSuccess)
+      vm.$webSocket.request({id: to.params.id}, 'enterRoom').then(vm.enterSuccess)
     })
   },
   beforeRouteLeave (to, from, next) {
-    this.$webSocket.send({}, 'leaveRoom')
+    if (to.name !== 'begin') {
+      this.$webSocket.send({}, 'leaveRoom')
+    }
     next()
-  },
-  mounted () {
-    this.socketEvents['enterRoom'] = this.enterSuccess
   },
   data () {
     return {
       socketEvents: {
         roomClose: this.showBackError,
         roomFull: this.showBackError,
-        userEnter: this.refreshUser,
+        userEnter (data) {
+          this.refreshUser(data)
+        },
+        gameBegin ({id}) {
+          this.$router.replace({name: 'begin', params: {id: id}})
+        },
         userLeave ({id}) {
           delete this.userMap[id]
           this.userMap = {...this.userMap}
@@ -51,11 +53,14 @@ export default {
     }
   },
   computed: {
+    me () {
+      return this.$store.getters.user
+    },
     users () {
       return Object.values(this.userMap)
     },
     isRoomMaster () {
-      const userId = this.$store.getters.user.id
+      const userId = this.me.id
       const firstUser = this.users[0]
       return firstUser && (firstUser.id === userId)
     },
@@ -72,6 +77,9 @@ export default {
     }
   },
   methods: {
+    beginGame () {
+      this.$webSocket.send(null, 'beginGame')
+    },
     showBackError (data) {
       this.loaded()
       this.$router.replace('/')
@@ -99,12 +107,12 @@ export default {
 <style lang="less">
 @import "~assets/less/base.less";
 .player-waiting{
-  padding-top: 5vw;
   display: flex;
   flex-wrap:wrap;
   text-align: center;
   @size: 40px;
   .head{
+    position: relative;
     width: 100%;
     height: 18vw;
     color: @white;
@@ -119,7 +127,8 @@ export default {
     overflow:hidden;
     text-overflow:ellipsis;
     color: @main-color;
-    margin: .8em 0;
+    font-size: .8em;
+    margin-top: .2em;
   }
   .empty-item{
     .head{
@@ -127,9 +136,41 @@ export default {
       color: @main-color;
     }
   }
+  .me{
+    .head{
+      &:after{
+        position: absolute;
+        left: 0;
+        top: 0;
+        content: "我";
+        color: @main-color;
+        background: @white;
+        padding: 2px 4px;
+        font-size: 10px;
+      }
+    }
+  }
+  .master{
+    .head{
+      &:before{
+        position: absolute;
+        left: 0;
+        top: 0;
+        content: "主";
+        color: @main-color;
+        background: @white;
+        padding: 2px 4px;
+        font-size: 10px;
+      }
+      &:after{
+        left: 20px;
+      }
+    }
+  }
 }
 .begin{
-  padding: 0 5vw;
+  padding: 0 2vw;
+  margin-bottom: 2vw;
 }
 .player-item{
   width: 25%;
