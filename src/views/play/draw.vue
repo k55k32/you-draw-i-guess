@@ -36,7 +36,11 @@ export default {
             this.doAction(data.actionName, data.data, false)
           }
         },
-        drawImage: this.drawImage
+        drawImage (data) {
+          if (!this.canDraw) {
+            this.drawImage(data)
+          }
+        }
       },
       lineWidth: 5,
       offsetTop: 0,
