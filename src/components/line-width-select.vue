@@ -1,9 +1,8 @@
-<template lang="jade">
+<template lang="pug">
   div.lines-wrap
     div.lines-list(v-for="l in lines")(@click="selectLine(l)")
       div.line-number {{l}}
       div.line-width(:style="{height: l + 'px', background: color}")
-
 </template>
 
 <script>

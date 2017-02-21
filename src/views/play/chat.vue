@@ -1,54 +1,72 @@
-<template lang="jade">
+<template lang="pug">
 .chat-input
-  form.weui-cells.weui-cells_form(@submit.prevent="sendMsg")
-    .weui-cell.chat-wrap
-      transition-group(name="msg-group")(enter-active-class="animated fadeInUp" tag="div")
-        div(v-for="msg in rcvMsg")(key="msg") {{msg}}
-    .weui-cell.weui-cell_vcode
-      .weui-cell__bd
-        input.weui-input(v-model="msg")
-      .weui-cell__ft
-        a.weui-vcode-btn(@click="sendMsg") 发送
+  form(@submit.prevent="sendMsg")
+    .input-group
+      input(type="text" placeholder="请输入要发送的消息" v-model="msg")
+      button(class="mint-button mint-button--primary mint-button--normal" type="submit") 发送
+  .msg-list(v-if="showList")
+    p(v-for="m in msgList", :class="m.type") {{m.msg}}
 </template>
 
 <script>
 export default {
+  props: ['showList'],
   data () {
     return {
       msg: '',
-      rcvMsg: [],
-      msgQueen: [],
-      msgNumber: 0,
-      receiveMsg: true
+      msgList: [],
+      socketEvents: {
+        receiveMsg (data) {
+          this.$emit('receive', data)
+          this.msgList.unshift(data)
+          this.msgList.splice(4, this.msgList.length) // 只显示最新的 4 条消息
+        }
+      }
     }
   },
   methods: {
-    chat (msg) {
-      this.msgQueen.push(msg.from.nickname + ':' + msg.data)
-      this.putMsg()
+    send (msg) {
+      this.$webSocket.send(msg, 'chatMsg')
     },
     sendMsg () {
-      this.send(this.msg, 'chat')
-      this.msg = ''
-    },
-    putMsg () {
-      let msg = this.msgQueen.shift()
-      if (msg) {
-        this.rcvMsg.push(msg)
-        setTimeout(() => {
-          this.shiftMsg()
-        }, 2000)
+      if (this.msg) {
+        this.send(this.msg)
+        this.msg = ''
       }
-    },
-    shiftMsg () {
-      this.rcvMsg.shift()
     }
   }
 }
 </script>
 
 <style lang="less">
-.chat-wrap{
-  height: 4em;
+@import "~assets/less/base.less";
+.input-group{
+  @children-height: 40px;
+  display: flex;
+  align-items: center;
+  background: @white;
+  border-bottom: @main-color solid 1px;
+  input{
+    flex: 1;
+    border: 0;
+    margin: 0;
+    height: @children-height;
+    padding: 0px 15px;
+    font-size: 1.1em;
+  }
+  button{
+    border-radius: 0;
+    height: @children-height;
+  }
+}
+.chat-input{
+  display: flex;
+  flex-direction: column;
+}
+.msg-list{
+  background: @white;
+  p{
+    margin: .6em .8em;
+  }
 }
 </style>

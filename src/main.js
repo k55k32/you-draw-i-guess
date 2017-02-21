@@ -1,32 +1,88 @@
 import Vue from 'vue'
-import App from './App'
+import App from '~/App'
 import VueRouter from 'vue-router'
-import routes from './routes'
+import routes from '~/routes'
+import store from '~/store'
 import WebSocketClient from './WebSocketClient'
-import 'weui'
-import './assets/animate.css'
+import MintUI from 'mint-ui'
+import 'mint-ui/lib/style.css'
+import '~/assets/less/golbal.less'
+import '~/assets/less/components.less'
+import Constant from './constant'
 
 Vue.use(VueRouter)
+Vue.use(MintUI)
 
 const router = new VueRouter({ routes })
 
-const webSocket = WebSocketClient.init({
-  path: 'ws://118.190.4.119:9001',
-  open () {
-    console.log('open success')
+Vue.prototype.isIPhone = () => {
+  return window.navigator.userAgent.indexOf('iPhone') > -1
+}
+Vue.prototype.isAndroid = () => {
+  return window.navigator.userAgent.indexOf('Android') > -1
+}
+
+Vue.prototype.$const = type => {
+  return Constant[type]
+}
+
+Vue.prototype.loading = text => {
+  Vue.prototype._currentLoading = MintUI.Indicator.open({
+    text, spinnerType: 'snake'
+  })
+}
+Vue.prototype.loaded = _ => {
+  Vue.nextTick(_ => MintUI.Indicator.close())
+}
+
+Vue.prototype.$messageBox = MintUI.MessageBox
+
+Vue.prototype.$message = (message, time = message.length / 4 * 1000) => {
+  return MintUI.Toast({
+    message: message,
+    position: 'bottom',
+    duration: time
+  })
+}
+router.beforeEach((to, from, next) => {
+  Vue.prototype.loading('连接中...')
+  if (!Vue.prototype.$webSocket) {
+    const webSocket = WebSocketClient.init({
+      path: 'ws://192.168.31.209:9001',
+      open () {
+        let user = store.getters.user
+        webSocket.request(user, 'login').then((user) => {
+          store.dispatch('login', user)
+          if (user.inGame) {
+            router.replace({name: 'begin', params: {id: user.currentRoomId}})
+          }
+          next()
+        })
+      }
+    })
+    Vue.prototype.$webSocket = webSocket
+  } else {
+    next()
   }
+})
+router.afterEach(() => {
+  Vue.prototype.loaded()
 })
 
 Vue.mixin({
-  data () {
-    return {
-      receiveMsg: false
+  created () {
+    const events = this.socketEvents
+    if (events) {
+      Object.keys(events).forEach(k => {
+        this.$webSocket.on(k, events[k].bind(this))
+      })
     }
   },
-  created () {
-    if (this.receiveMsg) {
-      webSocket.on('message', msg => {
-        this.$execute(msg.type, msg)
+  beforeDestory () {
+    const events = this.socketEvents
+    if (events) {
+      Object.keys(events).forEach(k => {
+        this.$webSocket.off(k, events[k].bind(this))
       })
     }
   },
@@ -36,35 +92,20 @@ Vue.mixin({
         this[name](data)
       }
     },
-    login (token) {
-      webSocket.setHeader({token})
-      this.send(token, 'login')
-    },
     send (msg, type) {
-      webSocket.send(msg, type)
+      // webSocket.send(msg, type)
     }
   }
 })
 
 /* eslint-disable no-new */
-const app = new Vue({
+new Vue({
   el: '#app',
+  store,
   router,
   render: h => h(App)
-})
-
-router.beforeEach((to, from, next) => {
-  if (to.matched.length === 0) {
-    app.$router.replace({ name: 'no-page', params: {message: to.path} })
-  }
-  next()
 })
 
 document.addEventListener('touchmove', e => {
   e.preventDefault()
 }, false)
-
-require.ensure([], r => {
-  let fastclick = require('fastclick')
-  fastclick.attach(document.body)
-}, 'fastclick')

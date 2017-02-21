@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
   div#app
     router-view
 </template>
@@ -7,8 +7,12 @@
 export default {
   name: 'app',
   created () {
-    let token = 'token_' + new Date().getTime()
-    this.login(token)
+    if (this.isIPhone()) {
+      require.ensure([], r => {
+        let fastclick = require('fastclick')
+        fastclick.attach(document.body)
+      }, 'fastclick')
+    }
   },
   methods: {
     getParams () {
@@ -27,7 +31,7 @@ export default {
   beforeRouteEnter (to, from, next) {
     next(vm => {
       let param = vm.getParams()
-      vm.$router.replace({path: '/' + (param.page || 'room')})
+      vm.$router.replace({path: '/' + (param.page || 'index')})
     })
   }
 }

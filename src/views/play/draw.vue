@@ -1,16 +1,18 @@
-<template lang="jade">
-div.draw-wrapper#draw-wrapper
+<template lang="pug">
+div.draw-wrapper
   .draw-wrap
-    canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end")
-    .operator-wrap
+    canvas(@touchstart="start" @touchmove="move" @touchend="end" v-if="canDraw" ref="canvasDom")
+    canvas(v-else ref="canvasDom")
+    slot(name="ondraw")
+    .operator-wrap(v-if="canDraw")
       color-select(@select-color = "selectColor" v-show="selectColorShow")
-      line-select(@select-line = "selectLine" v-show="selectLineShow")(:color="setting.color")
-  .operator-btns.weui-flex
+      line-select(@select-line = "selectLine" v-show="selectLineShow", :color="setting.color")
+  .operator-btns.flex(v-if="canDraw")
     div(@click="toggleSelectColor")
       .color(:style="{background: setting.color}")
     div(@click="toggleSelectLine")
       .line(:style="{height: setting.line + 'px', background: setting.color}")
-      {{setting.line}}
+      div {{setting.line}}
     div
       .iconfont.icon-weibiaoti545(@click="doAction('undo')")
     div
@@ -24,8 +26,18 @@ import colorSelect from 'color-select'
 import lineSelect from 'line-width-select'
 export default {
   components: { colorSelect, lineSelect },
+  props: ['canDraw', 'imageData'],
   data () {
     return {
+      socketEvents: {
+        drawAction (data) {
+          if (!this.canDraw) {
+            this.setting = data.setting
+            this.doAction(data.actionName, data.data, false)
+          }
+        },
+        drawImage: this.drawImage
+      },
       lineWidth: 5,
       offsetTop: 0,
       offsetLeft: 0,
@@ -42,7 +54,7 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      let dom = document.getElementById('draw-convas')
+      let dom = this.$refs.canvasDom
       let wrap = dom.parentElement
       this.canvasHeight = wrap.clientHeight
       this.canvasWidth = wrap.clientWidth
@@ -56,6 +68,15 @@ export default {
       this.cxt = cxt
       this.countOffset(dom)
       this.saveData()
+      this.$watch('imageData', v => {
+        this.$nextTick(_ => {
+          if (v) {
+            this.drawImage(v)
+          } else {
+            this.clearCanvas()
+          }
+        })
+      })
     })
   },
   watch: {
@@ -67,8 +88,9 @@ export default {
       deep: true
     },
     historyIndex () {
+      if (!this.canDraw) return
       let data = this.historyData[this.historyIndex]
-      if (data) this.cxt.putImageData(data, 0, 0)
+      if (data) this.sendImage(data)
     }
   },
   computed: {
@@ -80,6 +102,14 @@ export default {
     }
   },
   methods: {
+    drawImage (data) {
+      var img = new window.Image()
+      img.onload = () => {
+        this.clearCanvas()
+        this.cxt.drawImage(img, 0, 0)
+      }
+      img.src = data.dataUrl
+    },
     countOffset (dom) {
       if (dom) {
         this.offsetTop = this.offsetTop + dom.offsetTop
@@ -124,7 +154,7 @@ export default {
         case 'start':
         case 'move':
           this.draw(data, actionName)
-          if (sync) this.send({ actionName, data, setting: this.setting }, 'drawAction')
+          if (sync) this.sendAction({ actionName, data, setting: this.setting })
           break
         case 'end':
           this.cxt.closePath()
@@ -145,30 +175,23 @@ export default {
       }
 
       if (sync && actionName !== 'move' && actionName !== 'start') {
-        this.send({
-          dataUrl: this.canvas.toDataURL()
-        }, 'drawImage')
       }
     },
-    drawAction ({ data }) {
-      this.setting = data.setting
-      this.doAction(data.actionName, data.data, false)
+    sendImage (data) {
+      this.canDraw && this.$webSocket.send({
+        dataUrl: data
+      }, 'drawImage')
     },
-    drawImage ({ data }) {
-      this.clearCanvas()
-      var img = new window.Image()
-      img.onload = () => {
-        this.cxt.drawImage(img, 0, 0)
-      }
-      img.src = data.dataUrl
+    sendAction (action) {
+      this.canDraw && this.$webSocket.send(action, 'drawAction')
     },
     clearCanvas () {
       this.cxt.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
     },
     saveData () {
-      let data = this.cxt.getImageData(0, 0, this.canvasWidth, this.canvasHeight)
+      if (!this.canDraw) return
       this.historyData.splice(this.historyIndex + 1, this.historyData.length)
-      this.historyData.push(data)
+      this.historyData.push(this.canvas.toDataURL())
       this.historyIndex = this.historyData.length - 1
     },
     undo () {
@@ -203,7 +226,7 @@ export default {
 @import "../../assets/css/iconfont/iconfont.css";
 @operator-color: #eee;
 .operator-btns{
-  padding:10px 0;
+  padding: 5px 0;
   &>div{
     flex: 1;
     display: flex;
@@ -212,8 +235,8 @@ export default {
   }
   .color{
     border-radius: 50%;
-    height: 30px;
-    width: 30px;
+    height: 20px;
+    width: 20px;
   }
   .line{
     width: 5vw;
@@ -221,13 +244,13 @@ export default {
     text-align: center;
   }
   .iconfont{
-    font-size: 25px;
+    font-size: 20px;
   }
 }
 .draw-wrap{
   background: #fff;
   width: 100%;
-  height: 300px;
+  height: 260px;
   position: relative;
   .operator-wrap{
     box-shadow: 0 0 5vw #ccc;

@@ -12,7 +12,13 @@ exports.init = function (options) {
       options.open.call(this, e)
     }
     this._ws.onmessage = ({ data }) => {
-      event('message', JSON.parse(data))
+      const message = JSON.parse(data)
+      event('message', message)
+      if (message.id) {
+        event(message.id, message)
+      } else {
+        event(message.type, message.data)
+      }
     }
     this._ws.onclose = (e) => {
       connected = false
@@ -32,18 +38,9 @@ exports.init = function (options) {
     },
     close () {},
     message () {},
-    error () {},
-    header: {}
+    error () {}
   }
   options = {...opt, ...options}
-
-  this.setHeader = (key, value) => {
-    if (typeof key === 'object') {
-      options.header = {...options.header, ...key}
-    } else {
-      options.header[key] = value
-    }
-  }
 
   this.send = (data, type = -1) => {
     let msg = {data, type}
@@ -60,16 +57,49 @@ exports.init = function (options) {
 
   function sendMsg (msg) {
     if (connected) {
-      msg.header = options.header
       _ws.send(JSON.stringify(msg))
     } else {
       messageCache.push(msg)
     }
   }
 
+  this.request = (data, type) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const messageId = type + '_' + new Date().getTime()
+        const msg = {data, type, id: messageId}
+        this.on(messageId, ({data, error}) => {
+          if (error === true) {
+            reject(data)
+          }
+          resolve(data)
+          delete events[messageId]
+        })
+        sendMsg(msg)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
   this.on = (name, fn) => {
-    if (!events[name]) events[name] = []
-    events[name].push(fn)
+    if (typeof fn === 'function') {
+      if (!events[name]) events[name] = []
+      events[name].push(fn)
+    }
+  }
+
+  this.off = (name, fn) => {
+    const eventsArray = events[name]
+    if (eventsArray) {
+      eventsArray.every(eventFn => {
+        if (eventFn === fn) {
+          eventsArray.splice(eventsArray.indexOf(eventFn), 1)
+          return false
+        }
+        return true
+      })
+    }
   }
 
   function event (name, data) {

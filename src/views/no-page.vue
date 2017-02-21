@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
   .no-page 没有找到改页面 {{message}}
     .back
       a(@click="back") 返回
