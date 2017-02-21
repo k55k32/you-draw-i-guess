@@ -23,7 +23,10 @@ export default {
   beforeRouteEnter (to, from, next) {
     next(vm => {
       vm.loading()
-      vm.$webSocket.request({id: to.params.id}, 'enterRoom').then(vm.enterSuccess)
+      vm.$webSocket.request({id: to.params.id}, 'enterRoom').then(vm.enterSuccess).catch(e => {
+        vm.$message(e.msg)
+        vm.$router.replace('/')
+      })
     })
   },
   beforeRouteLeave (to, from, next) {

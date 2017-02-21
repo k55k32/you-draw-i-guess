@@ -1,11 +1,11 @@
 <template lang="pug">
-  div.index
+  .index
     mt-header(title="你画我猜-游戏大厅")
       mt-button(slot="left" icon="search" @click="inputRoomNumber") 查找房间
       router-link(:to="{name:'create-room'}", slot="right")
         mt-button 创建房间
     user-info.shadow
-    div.room-list
+    .room-list
       mt-loadmore(:top-method="loadTop", :bottom-method="loadBottom", :bottom-all-loaded="allLoad" ref="loadmore", :bottomDistance="50")
         div.room-item(v-for="r in roomList", :key="r.id")
           mt-header.light-header
@@ -16,9 +16,10 @@
             div.join-btn(slot="right")
               router-link(:to="{name: 'room', params: {id: r.id}}", v-if="r.status === 1")
                 mt-button(size="small" type="primary" plain) 加入房间
-      div.no-room()
+      .no-room
         router-link(:to="{name:'create-room'}" tag="div")
           mt-button(type="primary" size="large" plain) 没有想要的房间？创建一个
+        .server-info 在线人数: {{onlineUser}}
 </template>
 
 <script>
@@ -29,8 +30,12 @@ export default {
     return {
       socketEvents: {
         roomCreated: this.insertRoom,
-        roomChanged: this.roomUpdate
+        roomChanged: this.roomUpdate,
+        userNumber (number) {
+          this.onlineUser = number
+        }
       },
+      onlineUser: 1,
       roomList: 50,
       allLoad: false,
       user: {
@@ -49,6 +54,9 @@ export default {
   },
   created () {
     this.loadRoomList()
+    this.$webSocket.request({}, 'userNumber').then(size => {
+      this.onlineUser = size
+    })
   },
   computed: {
     loadEL () {
@@ -59,7 +67,6 @@ export default {
       this.roomList.forEach(r => {
         roomMap[r.id] = r
       })
-      console.log('roomMap', roomMap)
       return roomMap
     }
   },
@@ -72,7 +79,6 @@ export default {
       }
     },
     roomUpdate (room) {
-      console.log('update', room)
       let oldRoom = this.roomMap[room.id]
       if (oldRoom) {
         this.roomList = this.roomList.map(r => {
@@ -151,5 +157,8 @@ export default {
     flex: 1;
     overflow: auto;
   }
+}
+.server-info{
+  font-size: 15px;
 }
 </style>
