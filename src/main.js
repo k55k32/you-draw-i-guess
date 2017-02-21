@@ -85,16 +85,6 @@ Vue.mixin({
         this.$webSocket.off(k, events[k].bind(this))
       })
     }
-  },
-  methods: {
-    $execute (name, data) {
-      if (typeof this[name] === 'function') {
-        this[name](data)
-      }
-    },
-    send (msg, type) {
-      // webSocket.send(msg, type)
-    }
   }
 })
 
