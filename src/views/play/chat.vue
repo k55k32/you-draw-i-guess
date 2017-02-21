@@ -4,18 +4,20 @@
     .input-group
       input(type="text" placeholder="请输入要发送的消息" v-model="msg")
       button(class="mint-button mint-button--primary mint-button--normal" type="submit") 发送
-  .msg-list
+  .msg-list(v-if="showList")
     p(v-for="m in msgList", :class="m.type") {{m.msg}}
 </template>
 
 <script>
 export default {
+  props: ['showList'],
   data () {
     return {
       msg: '',
       msgList: [],
       socketEvents: {
         receiveMsg (data) {
+          this.$emit('receive', data)
           this.msgList.unshift(data)
           this.msgList.splice(4, this.msgList.length) // 只显示最新的 4 条消息
         }
@@ -23,9 +25,12 @@ export default {
     }
   },
   methods: {
+    send (msg) {
+      this.$webSocket.send(msg, 'chatMsg')
+    },
     sendMsg () {
       if (this.msg) {
-        this.$webSocket.send(this.msg, 'chatMsg')
+        this.send(this.msg)
         this.msg = ''
       }
     }

@@ -1,8 +1,9 @@
 <template lang="pug">
-div.draw-wrapper#draw-wrapper
+div.draw-wrapper
   .draw-wrap
-    canvas#draw-convas(@touchstart="start" @touchmove="move" @touchend="end" v-if="canDraw")
-    canvas#draw-convas(v-else)
+    canvas(@touchstart="start" @touchmove="move" @touchend="end" v-if="canDraw" ref="canvasDom")
+    canvas(v-else ref="canvasDom")
+    slot(name="ondraw")
     .operator-wrap(v-if="canDraw")
       color-select(@select-color = "selectColor" v-show="selectColorShow")
       line-select(@select-line = "selectLine" v-show="selectLineShow", :color="setting.color")
@@ -30,8 +31,10 @@ export default {
     return {
       socketEvents: {
         drawAction (data) {
-          this.setting = data.setting
-          this.doAction(data.actionName, data.data, false)
+          if (!this.canDraw) {
+            this.setting = data.setting
+            this.doAction(data.actionName, data.data, false)
+          }
         },
         drawImage: this.drawImage
       },
@@ -51,7 +54,7 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      let dom = document.getElementById('draw-convas')
+      let dom = this.$refs.canvasDom
       let wrap = dom.parentElement
       this.canvasHeight = wrap.clientHeight
       this.canvasWidth = wrap.clientWidth
@@ -66,9 +69,12 @@ export default {
       this.countOffset(dom)
       this.saveData()
       this.$watch('imageData', v => {
-        console.log(this.imageData)
         this.$nextTick(_ => {
-          this.drawImage(v)
+          if (v) {
+            this.drawImage(v)
+          } else {
+            this.clearCanvas()
+          }
         })
       })
     })
@@ -97,9 +103,9 @@ export default {
   },
   methods: {
     drawImage (data) {
-      this.clearCanvas()
       var img = new window.Image()
       img.onload = () => {
+        this.clearCanvas()
         this.cxt.drawImage(img, 0, 0)
       }
       img.src = data.dataUrl
@@ -220,7 +226,7 @@ export default {
 @import "../../assets/css/iconfont/iconfont.css";
 @operator-color: #eee;
 .operator-btns{
-  padding:10px 0;
+  padding: 5px 0;
   &>div{
     flex: 1;
     display: flex;
@@ -229,8 +235,8 @@ export default {
   }
   .color{
     border-radius: 50%;
-    height: 30px;
-    width: 30px;
+    height: 20px;
+    width: 20px;
   }
   .line{
     width: 5vw;
@@ -238,13 +244,13 @@ export default {
     text-align: center;
   }
   .iconfont{
-    font-size: 25px;
+    font-size: 20px;
   }
 }
 .draw-wrap{
   background: #fff;
   width: 100%;
-  height: 300px;
+  height: 260px;
   position: relative;
   .operator-wrap{
     box-shadow: 0 0 5vw #ccc;

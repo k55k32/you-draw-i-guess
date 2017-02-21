@@ -53,6 +53,9 @@ router.beforeEach((to, from, next) => {
         let user = store.getters.user
         webSocket.request(user, 'login').then((user) => {
           store.dispatch('login', user)
+          if (user.inGame) {
+            router.replace({name: 'begin', params: {id: user.currentRoomId}})
+          }
           next()
         })
       }

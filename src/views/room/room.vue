@@ -4,7 +4,7 @@ div
     mt-button(slot="left" icon="back" @click="leavlRoom") 离开房间
     mt-button(slot="right") 房间号 {{room.id}}
   .player-waiting
-    .player-item(v-for="user,index in users", :key="user.id", :class="{master: index === 0, me: me.id === user.id}")
+    player-item(v-for="user,index in users", :key="user.id", :user="user", :class="{master: index === 0, me: me.id === user.id}")
       .head {{user.username.substr(0,1)}}
       .username {{user.username}}
     .player-item.empty-item(v-for="emptyUser in emptyNumber")
@@ -12,13 +12,14 @@ div
       .username 等待加入
   .begin(v-if="isRoomMaster")
     mt-button(size="large" type="primary", :disabled="!canBegin", @click="beginGame") {{canBegin ? '开始游戏' : '至少两人才能开始'}}
-  chat
+  chat(showList="1")
 </template>
 <!-- 进入房间后自动坐下，房主可开始游戏 -->
 <script>
+import PlayerItem from './PlayerItem'
 import Chat from '~/views/play/chat'
 export default {
-  components: { Chat },
+  components: { Chat, PlayerItem },
   beforeRouteEnter (to, from, next) {
     next(vm => {
       vm.loading()
@@ -110,63 +111,6 @@ export default {
   display: flex;
   flex-wrap:wrap;
   text-align: center;
-  @size: 40px;
-  .head{
-    position: relative;
-    width: 100%;
-    height: 18vw;
-    color: @white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10vw;
-    background-color: @main-color;
-  }
-  .username{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    color: @main-color;
-    font-size: .8em;
-    margin-top: .2em;
-  }
-  .empty-item{
-    .head{
-      background-color: @white;
-      color: @main-color;
-    }
-  }
-  .me{
-    .head{
-      &:after{
-        position: absolute;
-        left: 0;
-        top: 0;
-        content: "我";
-        color: @main-color;
-        background: @white;
-        padding: 2px 4px;
-        font-size: 10px;
-      }
-    }
-  }
-  .master{
-    .head{
-      &:before{
-        position: absolute;
-        left: 0;
-        top: 0;
-        content: "主";
-        color: @main-color;
-        background: @white;
-        padding: 2px 4px;
-        font-size: 10px;
-      }
-      &:after{
-        left: 20px;
-      }
-    }
-  }
 }
 .begin{
   padding: 0 2vw;
