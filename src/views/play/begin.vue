@@ -81,12 +81,7 @@ export default {
           this.isShowAnswerCard = false
           this.isShowGameOver = true
           this.gameOverData = this.gameData.users.sort((u1, u2) => {
-            if (u1.score > u2.score) {
-              return 1
-            } else if (u1.score < u2.score) {
-              return -1
-            }
-            return 0
+            return u1.score < u2.score
           })
         }
       },
