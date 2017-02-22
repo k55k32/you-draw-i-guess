@@ -92,9 +92,11 @@ export default {
       deep: true
     },
     historyIndex () {
-      if (!this.canDraw) return
       let data = this.historyData[this.historyIndex]
-      if (data) this.sendImage(data)
+      if (data) {
+        this.drawImage({dataUrl: data})
+        this.sendImage(data)
+      }
     }
   },
   computed: {
@@ -162,11 +164,11 @@ export default {
           break
         case 'end':
           this.cxt.closePath()
-          this.saveData()
+          sync && this.saveData()
           break
         case 'clear':
           this.clearCanvas()
-          this.saveData()
+          sync && this.saveData()
           break
         case 'undo':
           this.undo()
@@ -193,7 +195,6 @@ export default {
       this.cxt.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
     },
     saveData () {
-      if (!this.canDraw) return
       this.historyData.splice(this.historyIndex + 1, this.historyData.length)
       this.historyData.push(this.canvas.toDataURL())
       this.historyIndex = this.historyData.length - 1

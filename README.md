@@ -14,12 +14,15 @@ npm run dev
 npm run build
 ```
 
+### 更新日志
+2017-2-22 19:46:28 `fixed` 画布无法撤销的问题
+
+---
 
 你画我猜，相信大家对这个游戏都很熟悉。   
 我用Vue2 + mint-ui + nodejs + websocket 实现了你画我猜这个游戏。   
 建议移动端打开效果更佳(可扫下方二维码)，PC端需要使用谷歌开发者模式，然后使用移动调试工具，才可以正常使用（主要是一些touch事件，pc不支持）   
-[http://yd.diamondfsd.com](http://yd.diamondfsd.com)   
-![alt](https://file.diamondfsd.com/img/ddeea735-598e-4e1e-b262-2d133f813303-)   
+[http://yd.diamondfsd.com](http://yd.diamondfsd.com)    
 
 主要实现了以下这些功能   
 
@@ -28,8 +31,7 @@ npm run build
 顶部显示个人昵称，可以修改   
 暂时不支持上传头像，头像用昵称第一个字母代替    
 暂时使用 `localStorage` 储存基本基本个人信息（昵称,token等）   
-实施更新房间列表，在线人数等信息       
-![alt](https://file.diamondfsd.com/img/292c2c29-44b1-45fd-b9dc-7a2f69953c78n)       
+实施更新房间列表，在线人数等信息            
 
 **创建游戏房间**         
 房间名称:        
@@ -42,17 +44,13 @@ npm run build
 房间游戏开始后不可加入      
 后期可加入观战功能      
 当游戏人数大于等于2或者以上的时候，可以开始游戏。  
-房间内可以聊天，默认第一个进入房间的人是房主，房主可以开始游戏。   
-![alt](https://file.diamondfsd.com/img/042c9bd1-1c7b-49c1-8b46-d3e987869d178)   
+房间内可以聊天，默认第一个进入房间的人是房主，房主可以开始游戏。    
 
 **游戏开始**   
 使用 `canvas` 做画布，通过实时发送动作，全图数据来实现动态笔迹，和最终图片一致性。   
 可以修改画笔颜色，粗细，进行撤销，恢复，清空等操作。   
-![alt](https://file.diamondfsd.com/img/a425d560-e7de-4c20-ab1c-9e1f9b868690d)   
-![alt](https://file.diamondfsd.com/img/5c373f24-32da-4766-b96b-ac0f8a184b37B)   
 每轮游戏结束后公布答案，预置了一些快捷短语可以恢复。 游戏过程中 作画者 不可以发文字聊天，其他玩家通过发文字猜答案。   
 
-![alt](https://file.diamondfsd.com/img/39b12c5f-d08a-41f9-a80d-9f32b0b22c6eP)    
 
 ## 项目结构   
 这个游戏由两个项目组成，一个是前端，一个是服务端        

@@ -37,10 +37,7 @@ export default {
       },
       onlineUser: 1,
       roomList: 50,
-      allLoad: false,
-      user: {
-        name: '玩家 001'
-      }
+      allLoad: false
     }
   },
   beforeRouteEnter (to, from, next) {

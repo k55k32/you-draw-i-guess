@@ -48,7 +48,7 @@ router.beforeEach((to, from, next) => {
   Vue.prototype.loading('连接中...')
   if (!Vue.prototype.$webSocket) {
     const webSocket = WebSocketClient.init({
-      path: 'ws://118.190.4.119:9001',
+      path: 'ws://192.168.31.209:9001',
       open () {
         let user = store.getters.user
         webSocket.request(user, 'login').then((user) => {
