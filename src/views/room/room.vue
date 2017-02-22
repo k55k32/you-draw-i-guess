@@ -102,7 +102,7 @@ export default {
     },
     leavlRoom () {
       this.$webSocket.send({}, 'leaveRoom')
-      this.$router.back()
+      this.$router.replace('/')
     }
   }
 }
