@@ -1,6 +1,7 @@
 <template lang="pug">
   div#app
     router-view
+    a.fork-me(href="https://github.com/k55k32/you-draw-i-guess" target="_blank") Fork Me On Github - Diamond Zhou
 </template>
 
 <script>
@@ -44,5 +45,16 @@ export default {
 body,html,#app{
   background: #f8f8f8;
   height: 100%;
+}
+a{
+    color: #bbb;
+}
+.fork-me{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+    width: 100%;
+    font-size: .8em;
 }
 </style>
